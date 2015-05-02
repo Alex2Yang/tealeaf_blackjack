@@ -108,11 +108,14 @@ begin
   display_cards(dealer_cards,dealer_name)
 
   player_turn(my_cards,new_deck,my_name)
-  player_turn(dealer_cards,new_deck,dealer_name) if calculate_sum(my_cards) < 21
 
-  if calculate_sum(my_cards) < 21 &&
-     (17..20).include?(calculate_sum(dealer_cards))
-    compare_hands(my_cards,my_name,dealer_cards,dealer_name)
+  if calculate_sum(my_cards) < 21
+    player_turn(dealer_cards,new_deck,dealer_name)
+
+    if (17..20).include?(calculate_sum(dealer_cards))
+      compare_hands(my_cards,my_name,dealer_cards,dealer_name)
+    end
+
   end
 
   display_start_or_end('Over')
