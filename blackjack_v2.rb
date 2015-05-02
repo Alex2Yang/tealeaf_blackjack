@@ -1,4 +1,4 @@
-cards = %w(a 2 3 4 5 6 7 8 9 10 J Q K)
+cards = %w(A 2 3 4 5 6 7 8 9 10 J Q K)
 suits = %w(H D C S)
 deck = cards.product(suits)
 
