@@ -34,9 +34,9 @@ def player_turn(cards, deck, name)
     puts "Congratulations, #{name} hit blackjack! #{name} win!"
   end
 
-  while_end = name == 'Dealer' ? 17 : 21
+  max = name == 'Dealer' ? 17 : 21
 
-  begin
+  while cards_sum < max
     unless name == 'Dealer'
       puts "What would you like to do? 1) hit 2) stay"
       hit_or_stay = gets.chomp
@@ -61,7 +61,7 @@ def player_turn(cards, deck, name)
     elsif cards_sum > 21
       puts "Sorry, #{name} busted!"
     end
-  end while cards_sum <  while_end
+  end
 end
 
 def display_cards(cards,name)
