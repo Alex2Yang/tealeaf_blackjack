@@ -67,7 +67,7 @@ end
 def display_cards(cards,name)
   puts "#{name}'s cards:"
   cards.each do |card|
-    result += "=> #{card}"
+    puts "=> #{card}"
   end
   puts ""
 end
@@ -96,7 +96,6 @@ begin
   display_start_or_end('Start')
 
   new_deck = (deck * 4).shuffle
-  binding.pry
   my_cards = []
   dealer_cards = []
 
