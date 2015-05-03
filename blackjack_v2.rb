@@ -1,18 +1,31 @@
 cards = %w(A 2 3 4 5 6 7 8 9 10 J Q K)
 suits = %w(H D C S)
 deck = cards.product(suits)
+BLACKJACK = 21
 
-def display_start_or_end(msg)
-  puts ""
-  puts "=================================="
-  puts "            Game #{msg}              "
-  puts "=================================="
-  puts ""
+def dealing_cards(deck, hand)
+  new_card = deck.pop
+  hand[:cards] << new_card
+
+  if hand[:cards].length > 2
+    puts "Dealing #{new_card} card to #{hand[:name]}."
+  end
+
 end
 
-def calculate_sum(cards)
+def deal_initial_2_cards(deck, *hands)
+  2.times do
+    hands.each {|hand| dealing_cards(deck, hand)}
+  end
+
+  dealer_hand = hands.select {|hand| hand[:name] == 'dealer'}.first
+  dealer_hand[:mask_card] = dealer_hand[:cards].last
+
+end
+
+def calculate_sum(hand)
   sum = 0
-  cards_without_suit = cards.map{|card| card[0]}
+  cards_without_suit = hand[:cards].map{|card| card[0]}
 
   cards_without_suit.each do |card|
     if card == 'A'
@@ -28,99 +41,115 @@ def calculate_sum(cards)
   sum
 end
 
-def player_turn(cards, deck, name)
-  cards_sum = calculate_sum(cards)
-  if cards_sum == 21
-    puts "Congratulations, #{name} hit blackjack! #{name} win!"
-  end
-
-  max = name == 'Dealer' ? 17 : 21
-
-  while cards_sum < max
-    unless name == 'Dealer'
-      puts "What would you like to do? 1) hit 2) stay"
-      hit_or_stay = gets.chomp
-      unless ['1', '2'].include?(hit_or_stay)
-        puts "Error: you must enter 1 or 2"
-        next
-      end
-
-      if hit_or_stay == '2'
-        puts "#{name} choose to stay."
-        break
-      end
-    end
-
-    new_card =  deck.pop
-    puts "Dealing card to #{name}: :#{new_card}"
-    cards << new_card
-    cards_sum = calculate_sum(cards)
-
-    if cards_sum == 21
-      puts "Congratulations,#{name} hit blackjack! #{name} win!"
-    elsif cards_sum > 21
-      puts "Sorry, #{name} busted!"
-    end
+def evaluate_hand(hand)
+  if calculate_sum(hand) == BLACKJACK
+    puts "Congratulations,#{hand[:name]} hit blackjack! #{hand[:name]} win!"
+  elsif calculate_sum(hand) > BLACKJACK
+    puts "Sorry, #{hand[:name]} busted!"
   end
 end
 
-def display_cards(cards,name)
-  puts "#{name}'s cards:"
-  cards.each do |card|
-    puts "=> #{card}"
+def player_turn(hand, deck)
+  cards_sum = calculate_sum(hand)
+  evaluate_hand(hand)
+
+  while cards_sum < BLACKJACK
+    puts "What would you like to do? 1) hit 2) stay"
+    hit_or_stay = gets.chomp
+
+    unless ['1', '2'].include?(hit_or_stay)
+      puts "Error: you must enter 1 or 2"
+      next
+    end
+
+    if hit_or_stay == '2'
+      puts "#{hand[:name]} choose to stay."
+      break
+    end
+
+    dealing_cards(deck, hand)
+    cards_sum = calculate_sum(hand)
+    evaluate_hand(hand)
   end
-  puts ""
 end
 
-def compare_hands(player1_cards,player1_name,player2_cards,player2_name)
-  display_cards(player1_cards, player1_name)
-  display_cards(player2_cards, player2_name)
-  player1_cards_sum = calculate_sum(player1_cards)
-  player2_cards_sum = calculate_sum(player2_cards)
+def dealer_turn(hand, deck)
+  cards_sum = calculate_sum(hand)
+  evaluate_hand(hand)
+
+  while cards_sum < 17
+    dealing_cards(deck, hand)
+    cards_sum = calculate_sum(hand)
+    evaluate_hand(hand)
+  end
+end
+
+def display_board(show_mask_card = false, *hands)
+  system "clear"
+  puts "----------- BlackJack -----------------"
+
+  hands.each do  |hand|
+    puts ""
+    puts "#{hand[:name]}'s cards:"
+    hand[:cards].each do |card|
+      if !show_mask_card &&
+          hand[:name] == 'dealer' &&
+          hand[:mask_card] == card
+        card = ['X', 'X']
+      end
+      puts "=> #{card}"
+    end
+    puts ""
+  end
+
+end
+
+def compare_hands(hand1, hand2)
+  player1_cards_sum = calculate_sum(hand1)
+  player2_cards_sum = calculate_sum(hand2)
+  puts "Sum of #{hand1[:name]} is #{player1_cards_sum},"
+  puts "Sum of #{hand2[:name]} is #{player2_cards_sum}."
 
   if player1_cards_sum > player2_cards_sum
-    puts "#{player1_name} win!"
+    puts "So,#{hand1[:name]} win!"
   elsif  player1_cards_sum < player2_cards_sum
-    puts "#{player2_name} win!"
+    puts "So,#{hand2[:name]} win!"
   else
     puts "It's a tie!"
   end
+
 end
 
+system "clear"
 puts "Welcome to play Blackjack!"
 puts "What's your name?"
 my_name = gets.chomp
-dealer_name = 'Dealer'
+dealer_name = 'dealer'
 
-begin
-  display_start_or_end('Start')
-
+loop do
   new_deck = (deck * 4).shuffle
-  my_cards = []
-  dealer_cards = []
+  my_hand = {name:my_name, cards:[]}
+  dealer_hand = {name:dealer_name, cards:[]}
 
-  2.times do
-    my_cards << new_deck.pop
-    dealer_cards << new_deck.pop
-  end
+  deal_initial_2_cards(new_deck, my_hand, dealer_hand)
 
-  display_cards(my_cards,my_name)
-  display_cards(dealer_cards,dealer_name)
+  display_board(show_mask_card = false, my_hand, dealer_hand)
+  player_turn(my_hand, new_deck)
 
-  player_turn(my_cards,new_deck,my_name)
+  if calculate_sum(my_hand) < BLACKJACK
+    display_board(show_mask_card = true, my_hand, dealer_hand)
+    dealer_turn(dealer_hand, new_deck)
 
-  if calculate_sum(my_cards) < 21
-    player_turn(dealer_cards,new_deck,dealer_name)
-
-    if (17..20).include?(calculate_sum(dealer_cards))
-      compare_hands(my_cards,my_name,dealer_cards,dealer_name)
+    if (17..20).include?(calculate_sum(dealer_hand))
+      sleep 1.5
+      display_board(show_mask_card = true, my_hand, dealer_hand)
+      compare_hands(my_hand, dealer_hand)
     end
 
   end
 
-  display_start_or_end('Over')
-
   puts "#{my_name},once_agian?(y/n)"
   once_again = gets.chomp
+  break if once_again == 'n'
 
-end while once_again == 'y'
+end
