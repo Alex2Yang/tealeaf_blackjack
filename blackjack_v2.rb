@@ -79,6 +79,7 @@ def dealer_turn(hand, deck)
 
   while cards_sum < 17
     dealing_cards(deck, hand)
+    sleep 1
     cards_sum = calculate_sum(hand)
     evaluate_hand(hand)
   end
@@ -141,7 +142,8 @@ loop do
     dealer_turn(dealer_hand, new_deck)
 
     if (17..20).include?(calculate_sum(dealer_hand))
-      sleep 1.5
+      puts "dealer choose to stay"
+      sleep 1
       display_board(show_mask_card = true, my_hand, dealer_hand)
       compare_hands(my_hand, dealer_hand)
     end
