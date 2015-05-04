@@ -143,7 +143,7 @@ loop do
     display_board(show_mask_card = true, my_hand, dealer_hand)
     dealer_turn(dealer_hand, new_deck)
 
-    if (17..20).include?(calculate_sum(dealer_hand))
+    if calculate_sum(dealer_hand).between?(17, 20)
       puts "dealer choose to stay"
       sleep 1
       display_board(show_mask_card = true, my_hand, dealer_hand)
