@@ -37,7 +37,9 @@ def calculate_sum(hand)
     end
   end
 
-  sum -= cards_without_suit.count('A') * 10  if sum > 21
+  cards_without_suit.count('A').times do
+    sum -= 10 if sum > 21
+  end
   sum
 end
 
